@@ -1,4 +1,3 @@
-# --- Bucket S3 para el frontend ---
 resource "aws_s3_bucket" "web_app" {
   bucket = "certificates-web-app-${random_id.bucket_suffix.hex}"
   
@@ -8,7 +7,6 @@ resource "aws_s3_bucket" "web_app" {
   }
 }
 
-# Configuración de acceso público (reemplaza el acl deprecado)
 resource "aws_s3_bucket_public_access_block" "web_app_block" {
   bucket = aws_s3_bucket.web_app.id
 
@@ -18,7 +16,6 @@ resource "aws_s3_bucket_public_access_block" "web_app_block" {
   restrict_public_buckets = true
 }
 
-# Configuración del sitio web (reemplaza el bloque website deprecado)
 resource "aws_s3_bucket_website_configuration" "web_app" {
   bucket = aws_s3_bucket.web_app.id
 
@@ -31,7 +28,6 @@ resource "aws_s3_bucket_website_configuration" "web_app" {
   }
 }
 
-# Configuración de encriptación (formato actualizado)
 resource "aws_s3_bucket_server_side_encryption_configuration" "web_app_encryption" {
   bucket = aws_s3_bucket.web_app.id
 
@@ -42,17 +38,14 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "web_app_encryptio
   }
 }
 
-# Generador de sufijo aleatorio para el nombre del bucket
 resource "random_id" "bucket_suffix" {
   byte_length = 4
 }
 
-# --- Permisos para CloudFront (OAI) ---
 resource "aws_cloudfront_origin_access_identity" "s3_oai" {
   comment = "Identity para acceder al bucket S3 desde CloudFront"
 }
 
-# Política de acceso que solo permite CloudFront
 resource "aws_s3_bucket_policy" "web_app_policy" {
   bucket = aws_s3_bucket.web_app.id
   policy = data.aws_iam_policy_document.s3_policy.json

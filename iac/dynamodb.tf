@@ -1,4 +1,3 @@
-  # Tabla para Certificados
   resource "aws_dynamodb_table" "certificates_table" {
     name         = "Certificates"
     billing_mode = "PAY_PER_REQUEST"
@@ -24,7 +23,6 @@
       type = "N"  # Number (timestamp)
     }
 
-    # Índice global secundario para búsquedas por usuario
     global_secondary_index {
       name            = "UserIdIndex"
       hash_key        = "userId"
@@ -34,7 +32,6 @@
       write_capacity  = 1
     }
 
-    # Índice global secundario para búsquedas por estado
     global_secondary_index {
       name            = "StatusIndex"
       hash_key        = "status"
@@ -43,12 +40,10 @@
       non_key_attributes = ["certificateId", "userId"]
     }
 
-    # Encriptación en reposo
     server_side_encryption {
       enabled = true  # Usa el KMS por defecto de AWS
     }
 
-    # Configuración de TTL (opcional)
     ttl {
       attribute_name = "expirationDate"
       enabled        = true
@@ -60,7 +55,6 @@
     }
   }
 
-  # Tabla para Registros de Usuarios
   resource "aws_dynamodb_table" "registrations_table" {
     name         = "Registrations"
     billing_mode = "PAY_PER_REQUEST"
@@ -82,14 +76,12 @@
       type = "S"
     }
 
-    # Índice global secundario para búsquedas por email
     global_secondary_index {
       name            = "EmailIndex"
       hash_key        = "email"
       projection_type = "ALL"
     }
 
-    # Índice para búsquedas por tipo de cuenta
     global_secondary_index {
       name            = "AccountTypeIndex"
       hash_key        = "accountType"
@@ -97,13 +89,11 @@
       projection_type = "KEYS_ONLY"
     }
 
-    # Encriptación con clave KMS personalizada (opcional)
     server_side_encryption {
       enabled     = true
       kms_key_arn = aws_kms_key.dynamodb_key.arn  # Necesitas definir este recurso KMS
     }
 
-    # Configuración de backup automático
     point_in_time_recovery {
       enabled = true
     }
@@ -138,7 +128,6 @@
     })
   }
 
-  # --- IAM Policies ---
   resource "aws_iam_policy" "certificates_dynamodb_policy" {
     name        = "CertificatesDynamoDBPolicy"
     description = "Acceso a la tabla de Certificados"
@@ -223,7 +212,6 @@
     })
   }
 
-  # --- Policy Attachments ---
   resource "aws_iam_role_policy_attachment" "certificates_dynamodb" {
     role       = aws_iam_role.lambda_certificates_exec_role.name
     policy_arn = aws_iam_policy.certificates_dynamodb_policy.arn
@@ -254,7 +242,6 @@
     policy_arn = aws_iam_policy.lambda_logs_policy.arn
   }
 
-  # --- KMS Configuration ---
   resource "aws_kms_key" "dynamodb_key" {
     description             = "Clave KMS para DynamoDB"
     deletion_window_in_days = 10
@@ -291,7 +278,6 @@
     }
   }
 
-  # --- Outputs ---
   output "certificates_table_arn" {
     value = aws_dynamodb_table.certificates_table.arn
   }

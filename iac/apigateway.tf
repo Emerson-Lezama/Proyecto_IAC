@@ -3,7 +3,6 @@ resource "aws_api_gateway_rest_api" "certificates_api" {
   description = "API para gestión de certificados y registros"
 }
 
-# --- Configuración para Certificados ---
 resource "aws_api_gateway_resource" "certificates_resource" {
   rest_api_id = aws_api_gateway_rest_api.certificates_api.id
   parent_id   = aws_api_gateway_rest_api.certificates_api.root_resource_id
@@ -26,7 +25,6 @@ resource "aws_api_gateway_integration" "certificates_lambda" {
   uri                     = aws_lambda_function.certificates.invoke_arn
 }
 
-# --- Configuración para Registros ---
 resource "aws_api_gateway_resource" "registrations_resource" {
   rest_api_id = aws_api_gateway_rest_api.certificates_api.id
   parent_id   = aws_api_gateway_rest_api.certificates_api.root_resource_id
@@ -49,7 +47,6 @@ resource "aws_api_gateway_integration" "registrations_lambda" {
   uri                     = aws_lambda_function.registrations.invoke_arn
 }
 
-# --- Despliegue del API ---
 resource "aws_api_gateway_deployment" "deployment" {
   rest_api_id = aws_api_gateway_rest_api.certificates_api.id
   
@@ -65,14 +62,12 @@ resource "aws_api_gateway_deployment" "deployment" {
   }
 }
 
-# --- Stage separado ---
 resource "aws_api_gateway_stage" "prod" {
   stage_name    = "prod"
   rest_api_id   = aws_api_gateway_rest_api.certificates_api.id
   deployment_id = aws_api_gateway_deployment.deployment.id
 }
 
-# --- Permisos para Lambda ---
 resource "aws_lambda_permission" "apigw_certificates" {
   statement_id  = "AllowAPIGatewayInvoke"
   action        = "lambda:InvokeFunction"
