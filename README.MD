@@ -70,3 +70,7 @@ graph TD
     E --> G[DynamoDB \n Certificates]  
     F --> H[DynamoDB \n Registrations]  
 ```
+
+
+
+![Diagrama de Arquitectura en AWS](diagramaAWS.jpg)
