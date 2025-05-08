@@ -1,15 +1,21 @@
-// registrations/index.js
 const AWS = require('aws-sdk');
 const dynamodb = new AWS.DynamoDB.DocumentClient();
-const uuid = require('uuid'); // Para generar IDs únicos
+const uuid = require('uuid');
 
 exports.handler = async (event) => {
     try {
-        // 1. Parsear el cuerpo de la solicitud
+        // Validar si el cuerpo existe
+        if (!event.body) {
+            return {
+                statusCode: 400,
+                body: JSON.stringify({ message: 'El cuerpo de la solicitud está vacío' })
+            };
+        }
+
+        // Parsear y validar campos
         const requestBody = JSON.parse(event.body);
         const { email, nombre, tipoUsuario } = requestBody;
 
-        // 2. Validaciones básicas
         if (!email || !nombre || !tipoUsuario) {
             return {
                 statusCode: 400,
@@ -19,43 +25,43 @@ exports.handler = async (event) => {
             };
         }
 
-        // 3. Verificar si el usuario ya existe
-        const usuarioExistente = await dynamodb.get({
+        // 1. Verificar si el usuario existe usando el ÍNDICE GLOBAL SECUNDARIO
+        const usuarioExistente = await dynamodb.query({
             TableName: process.env.REGISTRATIONS_TABLE,
-            Key: { email }
+            IndexName: "EmailIndex", // Usar el GSI definido en Terraform
+            KeyConditionExpression: "email = :email",
+            ExpressionAttributeValues: { ":email": email }
         }).promise();
 
-        if (usuarioExistente.Item) {
+        if (usuarioExistente.Items?.length > 0) {
             return {
                 statusCode: 409,
                 body: JSON.stringify({ 
                     message: 'El usuario ya está registrado',
-                    userId: usuarioExistente.Item.userId
+                    userId: usuarioExistente.Items[0].userId
                 })
             };
         }
 
-        // 4. Crear nuevo registro
+        // 2. Crear nuevo usuario con mapeo correcto
         const nuevoUsuario = {
-            userId: uuid.v4(),
-            email,
-            nombre,
-            tipoUsuario,
+            userId: uuid.v4(), // Clave de partición
+            email: email, // Clave de rango
+            nombre: nombre,
+            accountType: tipoUsuario, // Nombre correcto del campo en DynamoDB
             fechaRegistro: new Date().toISOString(),
             estado: 'activo',
             ultimoAcceso: new Date().toISOString()
         };
 
-        // 5. Guardar en DynamoDB
+        // 3. Guardar en DynamoDB
         await dynamodb.put({
             TableName: process.env.REGISTRATIONS_TABLE,
             Item: nuevoUsuario
         }).promise();
 
-        // 6. Registrar en CloudWatch
-        console.log(`Nuevo usuario registrado: ${email}`);
-
-        // 7. Respuesta exitosa
+        console.log(`Registro exitoso: ${email}`);
+        
         return {
             statusCode: 201,
             headers: { 'Content-Type': 'application/json' },
@@ -70,9 +76,7 @@ exports.handler = async (event) => {
         };
 
     } catch (error) {
-        // Manejo de errores
-        console.error('Error en el registro:', error);
-        
+        console.error('Error:', error);
         return {
             statusCode: 500,
             body: JSON.stringify({ 
