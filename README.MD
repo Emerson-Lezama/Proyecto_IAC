@@ -1,4 +1,9 @@
 
+## Problema
+
+Una plataforma de cursos virtuales presentaba fallos críticos durante procesos clave como el registro de nuevos usuarios y la emisión de certificados al finalizar los cursos. Durante periodos de alta demanda —como el cierre de ciclos formativos o inscripciones masivas—, el sistema sufría demoras significativas, errores intermitentes y saturación en los servicios encargados del almacenamiento y procesamiento de solicitudes. Esta inestabilidad afectaba la experiencia de los usuarios, generaba pérdidas de confianza y dificultaba el escalado eficiente del servicio ante el crecimiento de la base estudiantil.
+
+
 ## Descripción Técnica de la Infraestructura en AWS
 
 Esta infraestructura, desplegada mediante Terraform, implementa un sistema de gestión de certificados y registros de usuarios utilizando servicios serverless de AWS. Está organizada en módulos funcionales que integran **API Gateway**, **AWS Lambda**, **DynamoDB**, **CloudFront** y **S3**, con seguridad habilitada mediante **IAM** y **KMS**.
